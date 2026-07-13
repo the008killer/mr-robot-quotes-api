@@ -147,16 +147,16 @@ app.get('/api/quote/daily', async(req, res) => {
     }
 });
 
-app.listen(PORT,()=>{
-    console.log(`
-  ╔════════════════════════════════════════╗
-  ║   🤖 Mr Robot Quotes API is LIVE!     ║
-  ╠════════════════════════════════════════╣
-  ║                                        ║
-  ║  Random : /api/quote/random            ║
-  ║  Daily  : /api/quote/daily             ║
-  ║  Website: http://localhost:${PORT}         ║
-  ║                                        ║
-  ╚════════════════════════════════════════╝    
-  `);
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/public/index.html');
 });
+
+//FOr local development
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(3000, () => {
+    console.log('Running locally on http://localhost:3000');
+  });
+}
+
+// For Vercel production
+module.exports = app;
