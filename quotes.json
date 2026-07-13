@@ -1,0 +1,22 @@
+{
+  "quotes": [
+    {
+      "id": 1,
+      "text": "The system isn’t broken. It was built this way.",
+      "character": "Elliot Alderson",
+      "category": "society"
+    },
+    {
+      "id": 2,
+      "text": "Control is an illusion designed by those who fear chaos.",
+      "character": "Mr. Robot",
+      "category": "control"
+    },
+    {
+      "id": 3,
+      "text": "Every firewall is just a challenge waiting to be bypassed.",
+      "character": "Elliot Alderson",
+      "category": "hacking"
+    }
+  ]
+}

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr. Robot Quotes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 700px;
+            padding: 40px;
+            border: 1px solid #00ff41;
+            background: rgba(0, 255, 65, 0.02);
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .terminal-header {
+            text-align: left;
+            margin-bottom: 30px;
+            font-size: 12px;
+            color: #00aa2a;
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .title {
+            font-size: 32px;
+            letter-spacing: 6px;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #00aa2a;
+            font-size: 11px;
+            letter-spacing: 5px;
+            margin-bottom: 40px;
+        }
+
+        /* Mode buttons */
+        .mode-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .mode-btn {
+            background: transparent;
+            color: #00aa2a;
+            border: 1px solid #00aa2a;
+            padding: 8px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            background: #00ff41;
+            color: #0a0a0a;
+            border-color: #00ff41;
+        }
+
+        .mode-btn:hover {
+            border-color: #00ff41;
+            color: #00ff41;
+        }
+
+        /* Quote Box */
+        .quote-box {
+            min-height: 150px;
+            padding: 25px;
+            border-left: 3px solid #00ff41;
+            text-align: left;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .quote-text {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .quote-character {
+            font-size: 13px;
+            color: #00aa2a;
+            text-align: right;
+        }
+
+        .quote-category {
+            display: inline-block;
+            font-size: 10px;
+            background: #00ff41;
+            color: #0a0a0a;
+            padding: 2px 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+
+        /* Loading state */
+        .loading-text {
+            color: #00aa2a;
+            font-size: 14px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* AI Badge */
+        .ai-badge {
+            font-size: 10px;
+            color: #00aa2a;
+            border: 1px solid #00aa2a;
+            padding: 3px 10px;
+            letter-spacing: 2px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        /* Generate Button */
+        .generate-btn {
+            background: transparent;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            padding: 14px 35px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            background: #00ff41;
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Status bar */
+        .status-bar {
+            font-size: 10px;
+            color: #00aa2a;
+            margin-top: 15px;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Terminal header -->
+    <div class="terminal-header">
+        guest@fsociety:~$ connect --ai-quotes<span class="blink">█</span>
+    </div>
+
+    <!-- Title -->
+    <h1 class="title">MR. ROBOT</h1>
+    <p class="subtitle">AI QUOTE TERMINAL</p>
+
+    <!-- AI Badge -->
+    <div class="ai-badge">⚡ POWERED BY CLAUDE AI</div>
+
+    <!-- Mode Toggle -->
+    <div class="mode-buttons">
+        <button class="mode-btn active" id="btn-random" onclick="setMode('random')">
+            RANDOM
+        </button>
+        <button class="mode-btn" id="btn-daily" onclick="setMode('daily')">
+            DAILY
+        </button>
+    </div>
+
+    <!-- Quote Display Box -->
+    <div class="quote-box">
+        <p class="quote-text" id="quoteText">
+            <span class="loading-text">Initializing connection to fsociety...</span>
+        </p>
+        <p class="quote-character" id="quoteCharacter"></p>
+        <span class="quote-category" id="quoteCategory" style="display:none;"></span>
+    </div>
+
+    <!-- Generate Button -->
+    <button class="generate-btn" id="generateBtn" onclick="fetchQuote()">
+        &gt; GENERATE QUOTE_
+    </button>
+
+    <!-- Status -->
+    <p class="status-bar" id="statusBar">Ready.</p>
+
+</div>
+
+<script>
+    let currentMode = 'random';
+
+    // Switch between random and daily mode
+    function setMode(mode) {
+        currentMode = mode;
+
+        // Update button styles
+        document.getElementById('btn-random').classList.toggle('active', mode === 'random');
+        document.getElementById('btn-daily').classList.toggle('active', mode === 'daily');
+
+        // Fetch quote for selected mode
+        fetchQuote();
+    }
+
+    // Main function to get quote from your API
+    async function fetchQuote() {
+        const quoteText = document.getElementById('quoteText');
+        const quoteCharacter = document.getElementById('quoteCharacter');
+        const quoteCategory = document.getElementById('quoteCategory');
+        const generateBtn = document.getElementById('generateBtn');
+        const statusBar = document.getElementById('statusBar');
+
+        // Show loading state
+        quoteText.innerHTML = '<span class="loading-text">🤖 Claude is generating your quote...</span>';
+        quoteCharacter.textContent = '';
+        quoteCategory.style.display = 'none';
+        generateBtn.disabled = true;
+        statusBar.textContent = 'Connecting to Claude AI...';
+
+        try {
+            // Pick endpoint based on mode
+            const endpoint = currentMode === 'daily'
+                ? '/api/quote/daily'
+                : '/api/quote/random';
+
+            const response = await fetch(endpoint);
+            const data = await response.json();
+
+            if (data.success) {
+                const quote = data.quote;
+
+                // Typing effect for the quote text
+                await typeWriter(quote.text, quoteText);
+
+                // Show character
+                quoteCharacter.textContent = `— ${quote.character}`;
+
+                // Show category badge
+                if (quote.category) {
+                    quoteCategory.textContent = quote.category;
+                    quoteCategory.style.display = 'inline-block';
+                }
+
+                // Update status bar
+                const isCache = data.generated === 'cached';
+                statusBar.textContent = isCache
+                    ? `📦 Today's cached quote | Date: ${data.date}`
+                    : `✅ Fresh quote generated by Claude AI`;
+
+            } else {
+                quoteText.textContent = 'ERROR: ' + data.error;
+                statusBar.textContent = 'Failed to generate quote.';
+            }
+
+        } catch (error) {
+            quoteText.textContent = 'CONNECTION FAILED. Check if server is running.';
+            statusBar.textContent = 'Error: ' + error.message;
+        }
+
+        // Re-enable button
+        generateBtn.disabled = false;
+    }
+
+    // Typing effect - types text one character at a time
+    function typeWriter(text, element) {
+        return new Promise((resolve) => {
+            element.textContent = '';
+            let i = 0;
+
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(type, 25); // Speed of typing (ms per character)
+                } else {
+                    resolve(); // Done typing
+                }
+            }
+
+            type();
+        });
+    }
+
+    // Load a quote when the page first loads
+    window.addEventListener('load', fetchQuote);
+</script>
+</body>
+</html>
