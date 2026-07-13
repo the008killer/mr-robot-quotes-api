@@ -29,6 +29,126 @@
             "text": "We stare into the code like a preacher into a confession, trying to rewrite the sins of a world that never logged out.",
             "character": "Elliot Alderson",
             "category": "paranoia"
+        },
+        {
+            "id": 6,
+            "text": "Every password you remember is another door someone else is trying to open.",
+            "character": "Elliot Alderson",
+            "category": "hacking"
+        },
+        {
+            "id": 7,
+            "text": "They don't need chains when they can convince you the cage is your career.",
+            "character": "Mr. Robot",
+            "category": "society"
+        },
+        {
+            "id": 8,
+            "text": "Funny how silence always knows my address before people do.",
+            "character": "Darlene Alderson",
+            "category": "isolation"
+        },
+        {
+            "id": 9,
+            "text": "Time does not forgive hesitation; it simply buries it beneath the next second.",
+            "character": "Whiterose",
+            "category": "time"
+        },
+        {
+            "id": 10,
+            "text": "The cleanest exploit is the one that makes the victim believe they chose it.",
+            "character": "Elliot Alderson",
+            "category": "control"
+        },
+        {
+            "id": 11,
+            "text": "Revolutions don't knock; they slip through the cracks everyone ignored.",
+            "character": "Mr. Robot",
+            "category": "freedom"
+        },
+        {
+            "id": 12,
+            "text": "Trust is just malware with better branding.",
+            "character": "Darlene Alderson",
+            "category": "paranoia"
+        },
+        {
+            "id": 13,
+            "text": "Power survives by teaching people to measure their own chains.",
+            "character": "Whiterose",
+            "category": "control"
+        },
+        {
+            "id": 14,
+            "text": "The network never sleeps because fear is always online.",
+            "character": "Elliot Alderson",
+            "category": "hacking"
+        },
+        {
+            "id": 15,
+            "text": "They sell comfort by the subscription and bill you with your future.",
+            "character": "Mr. Robot",
+            "category": "society"
+        },
+        {
+            "id": 16,
+            "text": "You can disappear from the internet, but good luck disappearing from yourself.",
+            "character": "Darlene Alderson",
+            "category": "isolation"
+        },
+        {
+            "id": 17,
+            "text": "A delayed decision is still a decision made in favor of someone else.",
+            "character": "Whiterose",
+            "category": "time"
+        },
+        {
+            "id": 18,
+            "text": "Reality keeps changing its checksum, and somehow I'm always the corrupted file.",
+            "character": "Elliot Alderson",
+            "category": "paranoia"
+        },
+        {
+            "id": 19,
+            "text": "The loudest rebellion is refusing to become the product they already priced.",
+            "character": "Mr. Robot",
+            "category": "freedom"
+        },
+        {
+            "id": 20,
+            "text": "Every city has a backdoor; you just have to stop trusting the map.",
+            "character": "Darlene Alderson",
+            "category": "hacking"
+        },
+        {
+            "id": 21,
+            "text": "Control is most complete when it feels indistinguishable from destiny.",
+            "character": "Whiterose",
+            "category": "control"
+        },
+        {
+            "id": 22,
+            "text": "The deepest loneliness begins when even your own thoughts start asking for proof.",
+            "character": "Elliot Alderson",
+            "category": "isolation"
+        },
+        {
+            "id": 23,
+            "text": "Corporations don't erase people; they overwrite them.",
+            "character": "Mr. Robot",
+            "category": "society"
+        },
+        {
+            "id": 24,
+            "text": "The clock is only honest with those willing to lose everything before it strikes.",
+            "character": "Whiterose",
+            "category": "time"
+        },
+        {
+            "id": 25,
+            "text": "Every hidden process leaves a trace, even the ones running inside your mind.",
+            "character": "Elliot Alderson",
+            "category": "paranoia"
         }
     ]
 }
