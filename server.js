@@ -2,40 +2,63 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
-// const fs = require('fs');
-// const Anthropic = require('@anthropic-ai/sdk');
-const { json } = require('stream/consumers');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const DEFAULT_AI_MODEL = 'anthropic/claude-3.5-haiku';
 
 app.use(cors());
 app.use(express.static('public'));
 
-// const claude = new Anthropic({
-//     apiKey: process.env.ANTHROPIC_API_KEY
-// });
+const staticQuotes = loadStaticQuotes();
 
 let dailyQuoteCache = {
-    date : null,
-    quote : null
+    date: null,
+    quote: null
 };
 
-//AI generation of quote
+function loadStaticQuotes() {
+    const quotesPath = path.join(__dirname, 'quotes.json');
+    const data = fs.readFileSync(quotesPath, 'utf-8');
+    return JSON.parse(data).quotes;
+}
+
+function getRandomStaticQuote() {
+    const index = Math.floor(Math.random() * staticQuotes.length);
+    const { id, ...quote } = staticQuotes[index];
+    return quote;
+}
+
+function getRequiredApiKey() {
+    return process.env.OPENROUTER_API_KEY || process.env.ANTHROPIC_API_KEY;
+}
+
+// AI generation of quote
 async function generateQuotes() {
-    console.log("Genarating a quote");
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions',{
+    const apiKey = getRequiredApiKey();
+
+    if (!apiKey) {
+        throw new Error('Missing OpenRouter API key. Set OPENROUTER_API_KEY in the deployment environment.');
+    }
+
+    console.log('Generating a quote');
+    const response = await fetch(OPENROUTER_URL, {
         method: 'POST',
-        headers :{
-            'Authorization': `Bearer ${process.env.ANTHROPIC_API_KEY}`,
-            'Content-Type': 'application/json'
+        headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': process.env.SITE_URL || 'https://mr-robot-quotes.vercel.app',
+            'X-Title': 'Mr Robot Quotes API'
         },
         body: JSON.stringify({
-            model: process.env.AI_MODEL,
+            model: process.env.AI_MODEL || DEFAULT_AI_MODEL,
             messages: [
-            {
-                role: 'user',
-                content: `Generate ONE original quote in the style of Mr. Robot TV series.
+                {
+                    role: 'user',
+                    content: `Generate ONE original quote in the style of Mr. Robot TV series.
                 The quote should feel like it was said by one of these characters:
                 - Elliot Alderson (dark, paranoid, philosophical, hacker mindset)
                 - Mr. Robot (aggressive, rebellious, anti-establishment)  
@@ -62,18 +85,23 @@ async function generateQuotes() {
                 "character": "character name here",
                 "category": "one word category here"
                 }`
-            }
-        ]
+                }
+            ]
         })
-        
-        
     });
 
     const data = await response.json();
 
-    const rawText = data.choices[0].message.content;
-    console.log('Raw AI response:', rawText);
+    if (!response.ok) {
+        throw new Error(`OpenRouter request failed with status ${response.status}: ${JSON.stringify(data)}`);
+    }
 
+    const rawText = data?.choices?.[0]?.message?.content;
+    if (!rawText) {
+        throw new Error(`OpenRouter response did not include quote content: ${JSON.stringify(data)}`);
+    }
+
+    console.log('Raw AI response:', rawText);
 
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
@@ -84,78 +112,70 @@ async function generateQuotes() {
     console.log('Quote generated:', quote.text);
 
     return quote;
-
 }
 
-// function loadQuotes() {
-//     const data = fs.readFileSync('quotes.json', 'utf-8');
-//     return JSON.parse(data).quotes;
-// }
-
-//random quote
-app.get('/api/quote/random', async(req, res) => {
+async function getQuoteWithFallback() {
     try {
-        const quote = await generateQuotes();
-        res.json({
-            success: true,
-            quote:quote,
+        return {
+            quote: await generateQuotes(),
             generated: 'fresh'
-
-        });
-    } catch (error){
-        console.error('Error generating quote:', error.message);
-        res.status(500).json({
-            success:false,
-            error: 'Failed to generate quote. Try again!'
-        });
+        };
+    } catch (error) {
+        console.error('AI quote generation failed, using local fallback:', error.message);
+        return {
+            quote: getRandomStaticQuote(),
+            generated: 'fallback'
+        };
     }
+}
+
+// random quote
+app.get('/api/quote/random', async (req, res) => {
+    const result = await getQuoteWithFallback();
+
+    res.json({
+        success: true,
+        quote: result.quote,
+        generated: result.generated
+    });
 });
 
-//daily quote
-app.get('/api/quote/daily', async(req, res) => {
-    try{
-        const todayDate = new Date().toISOString().split('T')[0];
+// daily quote
+app.get('/api/quote/daily', async (req, res) => {
+    const todayDate = new Date().toISOString().split('T')[0];
 
-        if (dailyQuoteCache.date === todayDate && dailyQuoteCache.quote) {
-            return res.json({
-                success: true,
-                quote: dailyQuoteCache.quote,
-                date: todayDate,
-                generated: 'cached'
-            });
-        }
-        console.log('Quote of the day', todayDate);
-        const quote = await generateQuotes();
-
-        //save the quote
-        dailyQuoteCache.date = todayDate;
-        dailyQuoteCache.quote = quote;
-
-        res.json({
-            success:true,
-            quote:quote,
+    if (dailyQuoteCache.date === todayDate && dailyQuoteCache.quote) {
+        return res.json({
+            success: true,
+            quote: dailyQuoteCache.quote,
             date: todayDate,
-            generated:'fresh'
-        });
-    
-    } catch (error){
-        console.error('Error Generating daily quote:', error.message);
-        res.status(500).json({
-            success:false,
-            error: 'Failed to generate daily quote. Try again!'
+            generated: 'cached'
         });
     }
+
+    console.log('Quote of the day', todayDate);
+    const result = await getQuoteWithFallback();
+
+    dailyQuoteCache.date = todayDate;
+    dailyQuoteCache.quote = result.quote;
+
+    res.json({
+        success: true,
+        quote: result.quote,
+        date: todayDate,
+        generated: result.generated
+    });
 });
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-//FOr local development
+// For local development
 if (process.env.NODE_ENV !== 'production') {
-  app.listen(3000, () => {
-    console.log('Running locally on http://localhost:3000');
-  });
+    app.listen(PORT, () => {
+        console.log(`Running locally on http://localhost:${PORT}`);
+    });
 }
 
 // For Vercel production
