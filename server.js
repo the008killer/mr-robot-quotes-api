@@ -4,11 +4,12 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const svgGenerator = require('./lib/svgGenerator');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_AI_MODEL = 'anthropic/claude-3.5-haiku';
+
 
 app.use(cors());
 app.use(express.static('public'));
@@ -54,7 +55,7 @@ async function generateQuotes() {
             'X-Title': 'Mr Robot Quotes API'
         },
         body: JSON.stringify({
-            model: process.env.AI_MODEL || DEFAULT_AI_MODEL,
+            model: process.env.AI_MODEL,
             messages: [
                 {
                     role: 'user',
@@ -165,6 +166,22 @@ app.get('/api/quote/daily', async (req, res) => {
         date: todayDate,
         generated: result.generated
     });
+});
+
+//svg quote
+app.get('/api/quote/svg', (req, res) => {
+    const theme = req.query.theme || 'mrrobot';
+    const mode = req.query.mode || 'daily';
+
+    const quote = mode === 'random'
+        ? getRandomStaticQuote()
+        : dailyQuoteCache.quote || getRandomStaticQuote();
+
+    const svg = svgGenerator.generateQuoteSVG(quote, { theme });
+
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxi-revalidate');
+    res.status(200).send(svg);
 });
 
 app.get('/', (req, res) => {
