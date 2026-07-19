@@ -9,7 +9,7 @@ const svgGenerator = require('./lib/svgGenerator');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-
+const BASE_URL = 'https://quotes.adhikariashwin0.com.np';
 
 app.use(cors());
 app.use(express.static('public'));
@@ -20,6 +20,14 @@ let dailyQuoteCache = {
     date: null,
     quote: null
 };
+// Convert date string to a consistent number
+function hashString(text) {
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+        hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+    }
+    return hash;
+}
 
 function loadStaticQuotes() {
     const quotesPath = path.join(__dirname, 'quotes.json');
@@ -29,6 +37,12 @@ function loadStaticQuotes() {
 
 function getRandomStaticQuote() {
     const index = Math.floor(Math.random() * staticQuotes.length);
+    const { id, ...quote } = staticQuotes[index];
+    return quote;
+}
+function getDailyStaticQuote() {
+    const date = new Date().toISOString().split('T')[0];
+    const index = hashString(date) % staticQuotes.length;
     const { id, ...quote } = staticQuotes[index];
     return quote;
 }
@@ -51,7 +65,7 @@ async function generateQuotes() {
         headers: {
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
-            'HTTP-Referer': process.env.SITE_URL || 'https://mr-robot-quotes.vercel.app',
+            'HTTP-Referer': process.env.SITE_URL || BASE_URL,
             'X-Title': 'Mr Robot Quotes API'
         },
         body: JSON.stringify({
@@ -169,19 +183,29 @@ app.get('/api/quote/daily', async (req, res) => {
 });
 
 //svg quote
-app.get('/api/quote/svg', (req, res) => {
+app.get('/api/quote/svg', async(req, res) => {
     const theme = req.query.theme || 'mrrobot';
     const mode = req.query.mode || 'daily';
 
-    const quote = mode === 'random'
-        ? getRandomStaticQuote()
-        : dailyQuoteCache.quote || getRandomStaticQuote();
+    const endpoint = mode === 'random' ? 'random' : 'daily';
+    
+    try {
+        const apiResponse = await fetch(`${BASE_URL}/api/quote/${endpoint}`);
+        const data = await apiResponse.json();
 
-    const svg = svgGenerator.generateQuoteSVG(quote, { theme });
+        const svg = svgGenerator.generateQuoteSVG(data.quote, { theme });
 
-    res.setHeader('Content-Type', 'image/svg+xml');
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxi-revalidate');
-    res.status(200).send(svg);
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+        res.status(200).send(svg);
+    } catch (error) {
+        console.error('SVG generation failed:', error);
+        // Fallback to static quote
+        const quote = getRandomStaticQuote();
+        const svg = svgGenerator.generateQuoteSVG(quote, { theme });
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.status(200).send(svg);
+    }
 });
 
 app.get('/', (req, res) => {
