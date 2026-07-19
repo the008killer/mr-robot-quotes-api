@@ -43,6 +43,7 @@ guest@fsociety:~$ curl https://quotes.adhikariashwin0.com.np/api/quote/random
 |----------|------------|----------|
 | `GET /api/quote/random` | Fresh AI-generated quote every request | New quote each time |
 | `GET /api/quote/daily` | Quote of the day (cached for 24hrs) | Same quote all day |
+| `GET /api/quote/svg` | Generate SVG from the quotes | parameters: mode=random/daily theme=[Available Themes](#themes)|
 
 ### Base URL
 
@@ -64,6 +65,11 @@ curl https://quotes.adhikariashwin0.com.np/api/quote/random
 
 ```bash
 curl https://quotes.adhikariashwin0.com.np/api/quote/daily
+```
+### Get SVG Quote
+
+```bash
+curl https://quotes.adhikariashwin0.com.np/api/quote/svg?mode=daily&theme=mrrobot
 ```
 
 ### Use in JavaScript
@@ -132,6 +138,49 @@ print(f"— {data['quote']['character']}")
 • revolution    • technology
 ```
 
+### Mode
+
+```
+• random
+• daily
+```
+
+### Themes
+
+<details id="themes">
+<summary>Themes</summary>
+
+- mrrobot
+- hacker
+- cyberpunk
+- default
+- default_dark
+- chartreuse_dark
+- algolia
+- catppuccin
+- catppuccin_frappe
+- catppuccin_latte
+- catppuccin_macchiato
+- catppuccin_mocha
+- dracula
+- github
+- github_dark
+- github_blue
+- graywhite
+- gruvbox
+- hackerman
+- merko
+- monokai
+- moonlight
+- nord
+- radical
+- shadow_blue
+- shadow_green
+- shadow_red
+- tokyonight
+
+</details>
+
 ---
 
 ## 🛠️ Tech Stack
@@ -168,16 +217,35 @@ jobs:
           RESPONSE=$(curl -s https://quotes.adhikariashwin0.com.np/api/quote/daily)
           python3 << 'EOF'
           import json, re, os
+          from datetime import datetime
+
+          # Fetch text quote
           response = os.popen('curl -s https://quotes.adhikariashwin0.com.np/api/quote/daily').read()
           data = json.loads(response)
           q = data['quote']
           formatted = f'> *"{q["text"]}"*\n>\n> — **{q["character"]}** `#{q["category"]}`'
+
           with open('README.md', 'r') as f: content = f.read()
-          new = re.sub(
+
+          # Update text quote between tags
+          content = re.sub(
               r'<!-- MR_ROBOT_QUOTE_START -->.*?<!-- MR_ROBOT_QUOTE_END -->',
               f'<!-- MR_ROBOT_QUOTE_START -->\n{formatted}\n<!-- MR_ROBOT_QUOTE_END -->',
               content, flags=re.DOTALL)
-          with open('README.md', 'w') as f: f.write(new)
+
+          # Update SVG cache-buster with today's date
+          today = datetime.now().strftime('%Y%m%d')
+          def update_svg_url(match):
+              url = match.group(0)
+              url = re.sub(r'[&?]cachebust=\d+', '', url)
+              separator = '&' if '?' in url else '?'
+              return f'{url}{separator}cachebust={today}'
+
+          content = re.sub(
+              r'https://quotes\.adhikariashwin0\.com\.np/api/quote/svg[^\s"\')]*',
+              update_svg_url, content)
+
+          with open('README.md', 'w') as f: f.write(content)
           EOF
       - name: Commit
         run: |
@@ -190,15 +258,22 @@ jobs:
 
 Add this code on README.md to generate quote
 
-```
-## 🤖 Mr. Robot Quote of the Day
+- For `text` quote:
+  ```
+    ## 🤖 Mr. Robot Quote of the Day
 
-<!-- QUOTE_START -->
-> Quote loads here automatically every day
-<!-- QUOTE_END -->
-```
-
+    <!-- QUOTE_START -->
+    > Quote loads here automatically every day
+    <!-- QUOTE_END -->
+  ```
+- For `SVG` quote (added automatically via github workflow don't need code below):
+  ```
+    <img src="https://quotes.adhikariashwin0.com.np/api/quote/svg?theme=default&mode=daily" />
+  ```
 ---
+
+
+
 
 
 
