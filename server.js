@@ -190,14 +190,28 @@ app.get('/api/quote/svg', async(req, res) => {
     const endpoint = mode === 'random' ? 'random' : 'daily';
     
     try {
-        const apiResponse = await fetch(`${BASE_URL}/api/quote/${endpoint}`);
-        const data = await apiResponse.json();
+        let quote;
 
-        const svg = svgGenerator.generateQuoteSVG(data.quote, { theme });
+        if(req.query.text && req.query.character){
+            quote = {
+                text:req.query.text,
+                character: req.query.character,
+                category: req.query.category || ''
+            };
+        } else {
+            const endpoint = mode === 'random' ? 'random' : 'daily';
+            const apiResponse = await fetch(`${BASE_URL}/api/quote/${endpoint}`);
+            const data = await apiResponse.json();
+            quote = data.quote;
+        }
+
+
+        const svg = svgGenerator.generateQuoteSVG(quote, { theme });
 
         res.setHeader('Content-Type', 'image/svg+xml');
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
         res.status(200).send(svg);
+
     } catch (error) {
         console.error('SVG generation failed:', error);
         // Fallback to static quote

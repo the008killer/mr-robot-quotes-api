@@ -329,7 +329,7 @@
     <!-- Theme Selector (visible only in SVG mode) -->
     <div class="theme-selector" id="themeSelector" style="display: none;">
         <span class="theme-label">THEME:</span>
-        <select class="theme-dropdown" id="themeDropdown" onchange="fetchQuoteText()">
+        <select class="theme-dropdown" id="themeDropdown" onchange="onThemeChange()">
             <option value="mrrobot">Mr. Robot</option>
             <option value="hacker">Hacker</option>
             <option value="cyberpunk">Cyberpunk</option>
@@ -395,7 +395,7 @@
     
     
     <!-- Generate Button -->
-    <button class="generate-btn" id="generateBtn" onclick="fetchQuoteText()">
+    <button class="generate-btn" id="generateBtn" onclick="onGenerateClick()">
         &gt; GENERATE QUOTE_
     </button>
 
@@ -407,6 +407,7 @@
 <script>
     let currentMode = 'random';
     let svgMode = 'daily';
+    let cachedRandomQuote = 'null';
 
     // Switch between random and daily mode
     function setMode(mode) {
@@ -425,6 +426,9 @@
         document.getElementById('svgPreview').classList.toggle('active', isSvg);
         document.getElementById('copySection').classList.toggle('active', isSvg);
 
+        //reset cache when switching main modes
+        cachedRandomQuote = null;
+
         // Fetch quote for selected mode
         fetchQuoteText();
     }
@@ -434,6 +438,22 @@
         svgMode = mode;
         document.getElementById('svg-daily').classList.toggle('active', mode === 'daily');
         document.getElementById('svg-random').classList.toggle('active', mode === 'random');
+        
+        // Clear cache when switching sub-mode
+        cachedRandomQuote = null;
+        fetchQuoteText();
+    }
+
+    //theme changed = reuse cached quote, only re-rended
+    function onThemeChange(){
+        if (currentMode==='svg'){
+            renderSvg();
+        }
+    }
+
+    //generate button clicked = force new quote
+    function onGenerateClick(){
+        cachedRandomQuote = null;
         fetchQuoteText();
     }
 
@@ -508,21 +528,53 @@
 
     }
 
-    // fetch SVG quote Card
-    async function fetchSvg() {
+    // fetch SVG quote card
+    async function fetchSvg(){
+        const statusBar = document.getElementById('statusBar');
+
+        //for random mode: only fetch new quote if cache is empty
+        if (svgMode === 'random' && !cachedRandomQuote) {
+            statusBar.textContent = 'Fetching random quote...';
+            try {
+                const res = await fetch('/api/quote/random');
+                const data = await res.json();
+
+                if (data.success){
+                    cachedRandomQuote= data.quote;
+                } else {
+                    statusBar.textContent = 'Failed to fetch quote';
+                    return;
+                }
+            } catch (err) {
+                statusBar.textContent = 'Failed to fetch quote: ' + err.message;
+                return;
+            }
+        }
+        renderSvg();
+    }
+
+    // render SVG with current quote and theme
+    function renderSvg() {
         const svgImage = document.getElementById('svgImage');
         const copyUrl = document.getElementById('copyUrl');
         const statusBar = document.getElementById('statusBar');
         const theme = document.getElementById('themeDropdown').value;
-
-        statusBar.textContent = "Generating SVG card....";
-
-        // build url
         const baseUrl = window.location.origin;
-        const svgUrl = `${baseUrl}/api/quote/svg?theme=${theme}&mode=${svgMode}&t=${Date.now()}`;
 
-        // Public URL (without cache buster) for embedding
-        const publicUrl = `${baseUrl}/api/quote/svg?theme=${theme}&mode=${svgMode}`;
+        let svgUrl;
+        let publicUrl;
+
+        if (svgMode === 'daily') {
+            publicUrl = `${baseUrl}/api/quote/svg?theme=${theme}&mode=daily`;
+            svgUrl = publicUrl;
+        } else {
+            const q = encodeURIComponent(cachedRandomQuote.text);
+            const c = encodeURIComponent(cachedRandomQuote.character);
+            const cat = encodeURIComponent(cachedRandomQuote.category || '');
+
+            svgUrl = `${baseUrl}/api/quote/svg?theme=${theme}&text=${q}&character=${c}&category=${cat}`;
+            publicUrl = `${baseUrl}/api/quote/svg?theme=${theme}&mode=random`;
+        }
 
         // set image
         svgImage.src = svgUrl;
@@ -550,7 +602,7 @@
         } catch (err) {
             statusBar.textContent = 'Copy Failed';
             copyUrl.select();
-            consle.error('Clipboard error:', err);
+            console.error('Clipboard error:', err);
             
         }
     }
@@ -567,7 +619,7 @@
             statusBar.textContent = "Markdown Copied to Clipboard";
         } catch (err) {
             statusBar.textContent = 'Copy Failed!';
-            consl.error('Clipboard error:', err);
+            console.error('Clipboard error:', err);
         }
     }
 
