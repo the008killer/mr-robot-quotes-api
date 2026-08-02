@@ -19,11 +19,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            padding:20px;
         }
 
         .container {
             text-align: center;
             max-width: 700px;
+            width: 100%;
             padding: 40px;
             border: 1px solid #00ff41;
             background: rgba(0, 255, 65, 0.02);
@@ -66,6 +68,7 @@
             gap: 10px;
             justify-content: center;
             margin-bottom: 30px;
+            flex-wrap: wrap;
         }
 
         .mode-btn {
@@ -88,6 +91,44 @@
 
         .mode-btn:hover {
             border-color: #00ff41;
+            color: #00ff41;
+        }
+
+        /* Theme selector */
+        .theme-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .theme-label {
+            color:  #00aa2a;
+            font-size: 11px;
+            letter-spacing: 2px;
+        }
+
+        .theme-dropdown {
+            background: #0a0a0a;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            padding: 6px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            min-width: 200px;
+        }
+
+        .theme-dropdown:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+        }
+
+        .theme-dropdown option {
+            background: #0a0a0a;
             color: #00ff41;
         }
 
@@ -122,6 +163,26 @@
             letter-spacing: 3px;
             text-transform: uppercase;
             margin-top: 10px;
+        }
+
+         /* SVG preview box */
+        .svg-preview {
+            display: none;
+            padding: 20px;
+            background: #050505;
+            border: 1px dashed #00aa2a;
+            margin-bottom: 25px;
+            border-radius: 8px;
+        }
+
+        .svg-preview.active {
+            display: block;
+        }
+
+        .svg-preview img {
+            max-width: 100%;
+            display: block;
+            margin: 0 auto;
         }
 
         /* Loading state */
@@ -175,6 +236,59 @@
             cursor: not-allowed;
         }
 
+        /* Copy URL section */
+        .copy-section {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #00aa2a;
+            border-radius: 4px;
+            background: rgba(0, 255, 65, 0.03);
+        }
+
+        .copy-section.active {
+            display: block;
+        }
+
+        .copy-label {
+            font-size: 10px;
+            color: #00aa2a;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .copy-url {
+            background: #050505;
+            color: #00ff41;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            border: none;
+            width: 100%;
+            word-break: break-all;
+            resize: none;
+            min-height: 60px;
+        }
+
+        .copy-btn {
+            background: transparent;
+            color: #00aa2a;
+            border: 1px solid #00aa2a;
+            padding: 6px 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #00ff41;
+            color: #0a0a0a;
+            border-color: #00ff41;
+        }
+
         /* Status bar */
         .status-bar {
             font-size: 10px;
@@ -197,7 +311,7 @@
     <p class="subtitle">AI QUOTE TERMINAL</p>
 
     <!-- AI Badge -->
-    <div class="ai-badge">⚡ POWERED BY Ripple AI</div>
+    <div class="ai-badge">⚡ POWERED BY RIPPLE AI</div>
 
     <!-- Mode Toggle -->
     <div class="mode-buttons">
@@ -207,19 +321,81 @@
         <button class="mode-btn" id="btn-daily" onclick="setMode('daily')">
             DAILY
         </button>
+        <button class="mode-btn" id="btn-svg" onclick="setMode('svg')">
+            SVG CARD
+        </button>
     </div>
 
+    <!-- Theme Selector (visible only in SVG mode) -->
+    <div class="theme-selector" id="themeSelector" style="display: none;">
+        <span class="theme-label">THEME:</span>
+        <select class="theme-dropdown" id="themeDropdown" onchange="fetchQuoteText()">
+            <option value="mrrobot">Mr. Robot</option>
+            <option value="hacker">Hacker</option>
+            <option value="cyberpunk">Cyberpunk</option>
+            <option value="dracula">Dracula</option>
+            <option value="tokyonight">Tokyo Night</option>
+            <option value="nord">Nord</option>
+            <option value="gruvbox">Gruvbox</option>
+            <option value="monokai">Monokai</option>
+            <option value="catppuccin">Catppuccin</option>
+            <option value="catppuccin_mocha">Catppuccin Mocha</option>
+            <option value="catppuccin_macchiato">Catppuccin Macchiato</option>
+            <option value="catppuccin_frappe">Catppuccin Frappe</option>
+            <option value="catppuccin_latte">Catppuccin Latte</option>
+            <option value="github_dark">GitHub Dark</option>
+            <option value="github_blue">GitHub Blue</option>
+            <option value="github">GitHub</option>
+            <option value="radical">Radical</option>
+            <option value="merko">Merko</option>
+            <option value="algolia">Algolia</option>
+            <option value="chartreuse_dark">Chartreuse Dark</option>
+            <option value="moonlight">Moonlight</option>
+            <option value="hackerman">Hackerman</option>
+            <option value="shadow_red">Shadow Red</option>
+            <option value="shadow_green">Shadow Green</option>
+            <option value="shadow_blue">Shadow Blue</option>
+            <option value="default_dark">Default Dark</option>
+            <option value="default">Default</option>
+            <option value="graywhite">Gray White</option>
+        </select>
+    </div>
+
+    <!-- Sub-mode for SVG (random or daily inside SVG) -->
+     <div class="mode-buttons" id="svgSubMode" style="display: none;">
+        <button class="mode-btn active" id="svg-daily" onclick="setSvgMode('daily')">
+            SVG DAILY
+        </button>
+        <button class="mode-btn" id="svg-random" onclick="setSvgMode('random')">
+            SVG RANDOM
+        </button>
+     </div>
+
     <!-- Quote Display Box -->
-    <div class="quote-box">
+    <div class="quote-box" id="quoteBox">
         <p class="quote-text" id="quoteText">
             <span class="loading-text">Initializing connection to fsociety...</span>
         </p>
         <p class="quote-character" id="quoteCharacter"></p>
         <span class="quote-category" id="quoteCategory" style="display:none;"></span>
     </div>
-
+    
+    <!-- SVG Preview Box -->
+     <div class="svg-preview" id="svgPreview">
+        <img id="svgImage" alt="SVG Quote"/>
+     </div>
+    
+    <!-- Copy URL Section -->
+    <div class="copy-section" id="copySection">
+        <div class="copy-label">EMBED URL (paste in your GitHub README):</div>
+        <textarea class="copy-url" id="copyUrl" readonly onclick="this.select()"></textarea>
+        <button class="copy-btn" onclick="copyToClipboard()">COPY URL</button>
+        <button class="copy-btn" onclick="copyMarkdown()">COPY MARKDOWN</button>
+    </div>
+    
+    
     <!-- Generate Button -->
-    <button class="generate-btn" id="generateBtn" onclick="fetchQuote()">
+    <button class="generate-btn" id="generateBtn" onclick="fetchQuoteText()">
         &gt; GENERATE QUOTE_
     </button>
 
@@ -230,6 +406,7 @@
 
 <script>
     let currentMode = 'random';
+    let svgMode = 'daily';
 
     // Switch between random and daily mode
     function setMode(mode) {
@@ -238,9 +415,39 @@
         // Update button styles
         document.getElementById('btn-random').classList.toggle('active', mode === 'random');
         document.getElementById('btn-daily').classList.toggle('active', mode === 'daily');
+        document.getElementById('btn-svg').classList.toggle('active', mode === 'svg');
+
+        //show/hide relevant sections
+        const isSvg = mode === 'svg';
+        document.getElementById('themeSelector').style.display = isSvg ? 'flex' : 'none';
+        document.getElementById('svgSubMode').style.display = isSvg ? 'flex' : 'none';
+        document.getElementById('quoteBox').style.display = isSvg ? 'none' : 'block';
+        document.getElementById('svgPreview').classList.toggle('active', isSvg);
+        document.getElementById('copySection').classList.toggle('active', isSvg);
 
         // Fetch quote for selected mode
-        fetchQuote();
+        fetchQuoteText();
+    }
+
+    // Switch SVG sub mode
+    function setSvgMode(mode){
+        svgMode = mode;
+        document.getElementById('svg-daily').classList.toggle('active', mode === 'daily');
+        document.getElementById('svg-random').classList.toggle('active', mode === 'random');
+        fetchQuoteText();
+    }
+
+    async function fetchQuoteText() {
+        const generateBtn = document.getElementById('generateBtn');
+        const statusBar = document.getElementById('statusBar');
+
+        generateBtn.disabled = true;
+        if (currentMode === 'svg'){
+            await fetchSvg();
+        } else {
+            await fetchQuote();
+        }
+        generateBtn.disabled = false;
     }
 
     // Main function to get quote from your API
@@ -248,14 +455,12 @@
         const quoteText = document.getElementById('quoteText');
         const quoteCharacter = document.getElementById('quoteCharacter');
         const quoteCategory = document.getElementById('quoteCategory');
-        const generateBtn = document.getElementById('generateBtn');
         const statusBar = document.getElementById('statusBar');
 
         // Show loading state
         quoteText.innerHTML = '<span class="loading-text"> 🤖 Ripple is generating your quote...</span>';
         quoteCharacter.textContent = '';
         quoteCategory.style.display = 'none';
-        generateBtn.disabled = true;
         statusBar.textContent = 'Connecting to Ripple AI...';
 
         try {
@@ -301,8 +506,69 @@
             statusBar.textContent = 'Error: ' + error.message;
         }
 
-        // Re-enable button
-        generateBtn.disabled = false;
+    }
+
+    // fetch SVG quote Card
+    async function fetchSvg() {
+        const svgImage = document.getElementById('svgImage');
+        const copyUrl = document.getElementById('copyUrl');
+        const statusBar = document.getElementById('statusBar');
+        const theme = document.getElementById('themeDropdown').value;
+
+        statusBar.textContent = "Generating SVG card....";
+
+        // build url
+        const baseUrl = window.location.origin;
+        const svgUrl = `${baseUrl}/api/quote/svg?theme=${theme}&mode=${svgMode}&t=${Date.now()}`;
+
+        // Public URL (without cache buster) for embedding
+        const publicUrl = `${baseUrl}/api/quote/svg?theme=${theme}&mode=${svgMode}`;
+
+        // set image
+        svgImage.src = svgUrl;
+
+        // set url for copying
+        copyUrl.value = publicUrl;
+
+        svgImage.onload = () => {
+            statusBar.textContent = `SVG Generated | Theme: ${theme} | Mode: ${svgMode}`;
+        };
+        
+        svgImage.onerror = () => {
+            statusBar.textContent = 'Failed to load SVG';
+        };
+    }
+
+    //Copy url to clipboard
+    async function copyToClipboard() {
+        const copyUrl = document.getElementById('copyUrl');
+        const statusBar = document.getElementById('statusBar');
+
+        try {
+            await navigator.clipboard.writeText(copyUrl.value);
+            statusBar.textContent = 'URL Copied to Clipboard!';
+        } catch (err) {
+            statusBar.textContent = 'Copy Failed';
+            copyUrl.select();
+            consle.error('Clipboard error:', err);
+            
+        }
+    }
+
+    // copy as markdown
+    async function copyMarkdown() {
+        const copyUrl = document.getElementById('copyUrl');
+        const statusBar = document.getElementById('statusBar');
+
+        const markdown = `<div align="center">\n <img src="${copyUrl.value}" alt="Mr Robot Quote"/>\n</div>`;
+        
+        try {
+            await navigator.clipboard.writeText(markdown);
+            statusBar.textContent = "Markdown Copied to Clipboard";
+        } catch (err) {
+            statusBar.textContent = 'Copy Failed!';
+            consl.error('Clipboard error:', err);
+        }
     }
 
     // Typing effect - types text one character at a time
@@ -326,7 +592,7 @@
     }
 
     // Load a quote when the page first loads
-    window.addEventListener('load', fetchQuote);
+    window.addEventListener('load', fetchQuoteText);
 </script>
 </body>
 </html>
